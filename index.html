@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>离心泵数字孪生查看器</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{overflow:hidden;font-family:"Microsoft YaHei",sans-serif}
+#container{width:100vw;height:100vh}
+#ui{position:absolute;top:12px;left:12px;z-index:100;background:rgba(255,255,255,.92);padding:10px 14px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
+#ui label{font-size:13px;color:#333;margin-left:10px}
+button{padding:6px 14px;margin:0 4px;cursor:pointer;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:13px}
+button:hover{background:#eef}
+#explodeSlider{width:140px;vertical-align:middle}
+#tip{margin-top:8px;font-size:12px;color:#666;display:block}
+#status{font-size:12px;color:#999;margin-top:4px;display:block}
+</style>
+</head>
+<body>
+<div id="ui">
+  <div>
+    <button id="explodeBtn">部件分解</button>
+    <label>爆炸程度 <input type="range" id="explodeSlider" min="0" max="100" value="0"></label>
+  </div>
+  <span id="tip">左键旋转 / 滚轮缩放 / 右键平移 / 点击零件高亮</span>
+  <span id="status">加载中…</span>
+</div>
+<div id="container"></div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const container = document.getElementById('container');
+const tip = document.getElementById('tip');
+const statusEl = document.getElementById('status');
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xdfe6ec);
+
+const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.01, 100000);
+camera.position.set(3, 2, 4);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+container.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.08;
+
+/* ========== 灯光（解决金属件发暗） ========== */
+// 关键：环境贴图——给金属件提供反射环境，否则PBR金属材质发黑
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+// 半球光 + 环境光 + 双方向光
+scene.add(new THREE.HemisphereLight(0xffffff, 0x3a4a5a, 0.7));
+scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+const dir1 = new THREE.DirectionalLight(0xffffff, 1.4);
+dir1.position.set(5, 8, 6);
+scene.add(dir1);
+const dir2 = new THREE.DirectionalLight(0x99bbff, 0.6);
+dir2.position.set(-4, -2, -6);
+scene.add(dir2);
+
+/* ========== 加载模型 ========== */
+const draco = new DRACOLoader();
+draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/libs/draco/');
+const loader = new GLTFLoader();
+loader.setDRACOLoader(draco);
+
+let model, meshList = [], originalPositions = new Map(), anchors = new Map();
+let modelSize = 1, modelCenter = new THREE.Vector3();
+let explodeRatio = 0, selected = null, selectedMat = null;
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+
+loader.load('./model.glb', gltf => {
+  model = gltf.scene;
+  scene.add(model);
+
+  // 统一把每个零件挂到model根下（保持世界位置不变），
+  // 消除GLB嵌套层级干扰，保证爆炸方向计算正确
+  model.updateMatrixWorld(true);
+  const tmp = [];
+  model.traverse(child => { if (child.isMesh) tmp.push(child); });
+  tmp.forEach(m => {
+    model.attach(m);                      // 保持世界变换，改为model直接子级
+    meshList.push(m);
+    originalPositions.set(m, m.position.clone());
+    // 关键：SW导出GLB时常把零件位置烘焙进顶点坐标，导致mesh.position全是(0,0,0)。
+    // 因此用每个零件自身包围盒中心作为"锚点"，爆炸方向才能真正发散
+    const box = new THREE.Box3().setFromObject(m);
+    const c = new THREE.Vector3();
+    box.getCenter(c);
+    anchors.set(m, c);
+  });
+
+  // 计算模型尺寸与中心（自适应，任何单位/大小都有效）
+  const box = new THREE.Box3().setFromObject(model);
+  modelSize = box.getSize(new THREE.Vector3()).length();
+  box.getCenter(modelCenter);
+
+  // 自动取景
+  const dist = modelSize * 1.6;
+  camera.position.set(dist * 0.6, dist * 0.5, dist * 0.8);
+  camera.lookAt(modelCenter);
+  controls.target.copy(modelCenter);
+  controls.update();
+
+  statusEl.textContent = '加载完成：' + meshList.length + ' 个零件';
+  if (meshList.length === 1) {
+    statusEl.textContent = '警告：只找到1个Mesh——导出GLB时可能勾选了"合并网格"，导致零件无法分解/单独高亮，请重新导出并取消合并选项';
+  }
+}, undefined, err => {
+  statusEl.textContent = '加载失败：' + err.message;
+  console.error(err);
+});
+
+/* ========== 爆炸分解（距离按模型尺寸自适应 + 滑块控制） ========== */
+const slider = document.getElementById('explodeSlider');
+const btn = document.getElementById('explodeBtn');
+
+function applyExplode() {
+  const dist = modelSize * explodeRatio * 0.55; // 最大爆炸位移 = 模型尺寸的35%
+  meshList.forEach(m => {
+    const origin = originalPositions.get(m);
+    if (explodeRatio <= 0) { m.position.copy(origin); return; }
+    const anchor = anchors.get(m);
+    const dir = anchor.clone().sub(modelCenter); // 从模型中心指向零件自身包围盒中心，方向必然发散
+    if (dir.lengthSq() < 1e-8) dir.set(1, 0, 0);  // 防止中心点零件方向为0
+    dir.normalize();
+    m.position.copy(origin).addScaledVector(dir, dist);
+  });
+}
+
+slider.oninput = () => {
+  explodeRatio = slider.value / 100;
+  btn.textContent = explodeRatio > 0 ? '部件复原' : '部件分解';
+  applyExplode();
+};
+btn.onclick = () => {
+  slider.value = explodeRatio > 0 ? 0 : 100;
+  explodeRatio = explodeRatio > 0 ? 0 : 1;
+  btn.textContent = explodeRatio > 0 ? '部件复原' : '部件分解';
+  applyExplode();
+};
+
+/* ========== 点击高亮 ========== */
+container.addEventListener('pointerdown', e => {
+  pointer.x = (e.clientX / container.clientWidth) * 2 - 1;
+  pointer.y = -(e.clientY / container.clientHeight) * 2 + 1;
+  raycaster.setFromCamera(pointer, camera);
+  const hits = raycaster.intersectObjects(meshList);
+
+  // 先恢复上一个选中
+  if (selected) { selected.material = selectedMat; selected = null; selectedMat = null; }
+
+  if (hits.length) {
+    selected = hits[0].object;
+    selectedMat = selected.material;
+    selected.material = selected.material.clone(); // 克隆材质再高亮，避免污染共享材质
+    selected.material.emissive = new THREE.Color(0x33aaff);
+    selected.material.emissiveIntensity = 0.55;
+    tip.textContent = '选中零件：' + (selected.name || '未命名');
+  } else {
+    tip.textContent = '左键旋转 / 滚轮缩放 / 右键平移 / 点击零件高亮';
+  }
+});
+
+/* ========== 窗口自适应 + 渲染循环 ========== */
+window.addEventListener('resize', () => {
+  camera.aspect = container.clientWidth / container.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(container.clientWidth, container.clientHeight);
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
