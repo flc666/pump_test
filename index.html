@@ -1,201 +1,323 @@
-<!DOCTYPE html>
+from pathlib import Path
+
+src = Path("/mnt/data/d5a531f0-2f97-4443-87dd-258203e66e56.html")
+out = Path("/mnt/data/离心泵数字孪生高级展示界面.html")
+
+html = r'''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<title>离心泵数字孪生查看器</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>离心泵智能运维与数字孪生平台</title>
 <style>
+:root{
+  --bg:#07111f;--panel:rgba(11,25,43,.88);--panel2:rgba(15,34,57,.92);
+  --line:rgba(119,170,220,.18);--text:#e7f1fb;--muted:#8ea6bf;
+  --blue:#38a8ff;--cyan:#42e6d0;--green:#3ed598;--yellow:#f5c451;
+  --red:#ff6578;--shadow:0 12px 40px rgba(0,0,0,.28);
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{overflow:hidden;font-family:"Microsoft YaHei",sans-serif}
-#container{width:100vw;height:100vh}
-#ui{position:absolute;top:12px;left:12px;z-index:100;background:rgba(255,255,255,.92);padding:10px 14px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.15)}
-#ui label{font-size:13px;color:#333;margin-left:10px}
-button{padding:6px 14px;margin:0 4px;cursor:pointer;border:1px solid #ccc;border-radius:6px;background:#fff;font-size:13px}
-button:hover{background:#eef}
-#explodeSlider{width:140px;vertical-align:middle}
-#tip{margin-top:8px;font-size:12px;color:#666;display:block}
-#status{font-size:12px;color:#999;margin-top:4px;display:block}
+html,body{width:100%;height:100%;overflow:hidden;font-family:"Microsoft YaHei","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+button,input{font:inherit}
+#container{position:absolute;inset:0}
+canvas{display:block}
+#app{position:absolute;inset:0;pointer-events:none}
+.panel,.clickable,.toolbar button,.tree-item{pointer-events:auto}
+.glass{background:linear-gradient(135deg,rgba(17,37,61,.94),rgba(8,22,38,.84));border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(16px)}
+#topbar{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);background:rgba(4,13,25,.78);backdrop-filter:blur(16px)}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#1a9dff,#2d5cff);font-weight:800;font-size:18px;box-shadow:0 0 24px rgba(56,168,255,.28)}
+.brand h1{font-size:17px;font-weight:650;letter-spacing:.5px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.status{display:flex;align-items:center;gap:8px;color:#b9cbe0;font-size:12px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
+.top-actions{display:flex;gap:8px}.top-actions button,.toolbar button{border:1px solid var(--line);background:rgba(20,43,69,.8);color:#dceafa;border-radius:7px;padding:8px 12px;cursor:pointer}
+.top-actions button:hover,.toolbar button:hover{background:rgba(36,73,112,.9);border-color:rgba(56,168,255,.5)}
+#left{position:absolute;left:16px;top:84px;bottom:16px;width:270px;display:flex;flex-direction:column;gap:12px}
+#right{position:absolute;right:16px;top:84px;bottom:16px;width:310px;display:flex;flex-direction:column;gap:12px}
+.panel{border-radius:12px;overflow:hidden}
+.panel-head{height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 13px;border-bottom:1px solid var(--line);font-size:13px;font-weight:650}
+.panel-head span:last-child{color:var(--muted);font-size:11px;font-weight:400}
+.panel-body{padding:12px}
+.tree{max-height:315px;overflow:auto;padding:7px}
+.tree-item{display:flex;align-items:center;gap:8px;padding:9px 9px;color:#bdcfe2;font-size:12px;border-radius:7px;cursor:pointer}
+.tree-item:hover,.tree-item.active{background:rgba(56,168,255,.12);color:#fff}
+.icon{width:22px;text-align:center;color:#6fc5ff}.sub{padding-left:32px}
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.metric{padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.025)}
+.metric label{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}.metric strong{font-size:16px;font-weight:650}.metric em{font-style:normal;font-size:10px;color:var(--muted);margin-left:3px}
+.good{color:var(--green)}.warn{color:var(--yellow)}.bad{color:var(--red)}.blue{color:var(--blue)}
+.alarm{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid rgba(119,170,220,.1);font-size:11px}
+.alarm:last-child{border:0}.alarm b{width:6px;height:6px;border-radius:50%;margin-top:4px;background:var(--green)}.alarm.warn b{background:var(--yellow)}.alarm.bad b{background:var(--red)}
+.alarm small{display:block;color:var(--muted);margin-top:3px}
+#bottom{position:absolute;left:300px;right:340px;bottom:16px;height:164px;border-radius:12px}
+.chart-wrap{height:116px;padding:7px 12px 12px}.chart{width:100%;height:100%}
+#centerTools{position:absolute;left:50%;top:82px;transform:translateX(-50%);display:flex;gap:6px}
+#centerTools button{pointer-events:auto;border:1px solid var(--line);background:rgba(7,20,35,.82);color:#dceafa;padding:8px 12px;border-radius:7px;cursor:pointer;font-size:11px;backdrop-filter:blur(12px)}
+#centerTools button.active{background:rgba(35,111,177,.55);border-color:rgba(66,230,208,.45);color:#fff}
+#hint{position:absolute;left:50%;bottom:195px;transform:translateX(-50%);font-size:11px;color:#8ca4bb;background:rgba(4,13,24,.6);padding:7px 12px;border-radius:20px;border:1px solid rgba(119,170,220,.12)}
+#selection{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:none;width:230px}
+.selection-title{font-size:12px;color:#7fc9ff;margin-bottom:7px}.selection-name{font-size:16px;font-weight:650}.selection-row{display:flex;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:11px}
+#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#07111f;z-index:20;color:#9bb3ca;pointer-events:auto}
+.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.12);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin-right:12px}@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:absolute;left:50%;top:145px;transform:translateX(-50%);padding:9px 16px;border-radius:8px;background:rgba(6,18,31,.94);border:1px solid rgba(56,168,255,.3);font-size:12px;opacity:0;transition:.25s}
+#toast.show{opacity:1}
+select{background:#0d2238;color:#dceafa;border:1px solid var(--line);border-radius:5px;padding:5px;font-size:11px}
+.range{width:100%}
+.footer-note{font-size:10px;color:#718ba5;line-height:1.6}
 </style>
 </head>
 <body>
-<div id="ui">
-  <div>
-    <button id="explodeBtn">部件分解</button>
-    <label>爆炸程度 <input type="range" id="explodeSlider" min="0" max="100" value="0"></label>
-  </div>
-  <span id="tip">左键旋转 / 滚轮缩放 / 右键平移 / 点击零件高亮</span>
-  <span id="status">加载中…</span>
-</div>
 <div id="container"></div>
+<div id="loading"><div class="spinner"></div><span id="loadText">正在加载离心泵三维模型…</span></div>
+
+<div id="app">
+  <header id="topbar">
+    <div class="brand">
+      <div class="logo">P</div>
+      <div><h1>离心泵智能运维与数字孪生平台</h1><small>设备对象：CP-01　·　离心泵机组　·　在线监测</small></div>
+    </div>
+    <div class="status"><span class="dot"></span>系统在线　|　数据更新时间：<span id="clock">--:--:--</span></div>
+    <div class="top-actions">
+      <button onclick="resetView()">⌂ 总览</button>
+      <button onclick="toggleFullscreen()">⛶ 全屏</button>
+      <button onclick="showToast('报告生成接口已预留')">⇩ 报告</button>
+    </div>
+  </header>
+
+  <aside id="left">
+    <section class="panel glass">
+      <div class="panel-head"><span>设备层级</span><span>CP-01</span></div>
+      <div class="tree">
+        <div class="tree-item active" onclick="focusModel()"><span class="icon">◈</span>离心泵机组</div>
+        <div class="tree-item sub" onclick="selectByKeyword('泵壳')"><span class="icon">▣</span>泵壳 / 蜗壳</div>
+        <div class="tree-item sub" onclick="selectByKeyword('叶轮')"><span class="icon">◉</span>叶轮</div>
+        <div class="tree-item sub" onclick="selectByKeyword('轴')"><span class="icon">│</span>泵轴 / 转子</div>
+        <div class="tree-item sub" onclick="selectByKeyword('轴承')"><span class="icon">◎</span>轴承</div>
+        <div class="tree-item sub" onclick="selectByKeyword('联轴')"><span class="icon">◇</span>联轴器</div>
+        <div class="tree-item sub" onclick="selectByKeyword('电机')"><span class="icon">M</span>驱动电机</div>
+      </div>
+    </section>
+
+    <section class="panel glass">
+      <div class="panel-head"><span>实时运行参数</span><span>LIVE</span></div>
+      <div class="panel-body">
+        <div class="kv">
+          <div class="metric"><label>转速</label><strong class="blue" id="rpm">1480</strong><em>rpm</em></div>
+          <div class="metric"><label>流量</label><strong id="flow">86.2</strong><em>m³/h</em></div>
+          <div class="metric"><label>出口压力</label><strong id="pressure">0.72</strong><em>MPa</em></div>
+          <div class="metric"><label>电机功率</label><strong id="power">38.6</strong><em>kW</em></div>
+          <div class="metric"><label>轴承温度</label><strong class="good" id="temp">56.4</strong><em>°C</em></div>
+          <div class="metric"><label>振动 RMS</label><strong class="good" id="vib">2.31</strong><em>mm/s</em></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel glass" style="flex:1">
+      <div class="panel-head"><span>运行状态</span><span id="healthText">正常</span></div>
+      <div class="panel-body">
+        <div style="height:8px;background:#10283e;border-radius:5px;overflow:hidden;margin:5px 0 12px"><div id="healthBar" style="height:100%;width:92%;background:linear-gradient(90deg,#32c98b,#42e6d0);border-radius:5px"></div></div>
+        <div class="kv">
+          <div class="metric"><label>设备健康度</label><strong class="good" id="health">92</strong><em>%</em></div>
+          <div class="metric"><label>运行时长</label><strong>8,426</strong><em>h</em></div>
+        </div>
+        <div class="footer-note" style="margin-top:12px">健康度可在后续接入振动、温度、压力、流量等多源数据后，由状态评估模型实时计算。</div>
+      </div>
+    </section>
+  </aside>
+
+  <aside id="right">
+    <section class="panel glass">
+      <div class="panel-head"><span>三维交互</span><span>3D VIEW</span></div>
+      <div class="panel-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+          <button class="toolbar" onclick="explode(1)">部件分解</button>
+          <button class="toolbar" onclick="explode(0)">部件复原</button>
+          <button class="toolbar" onclick="wireframe()">线框模式</button>
+          <button class="toolbar" onclick="focusModel()">自动取景</button>
+        </div>
+        <div style="margin-top:10px;color:var(--muted);font-size:10px">爆炸程度</div>
+        <input id="explodeSlider" class="range" type="range" min="0" max="100" value="0">
+      </div>
+    </section>
+
+    <section class="panel glass">
+      <div class="panel-head"><span>报警与事件</span><span>3 条</span></div>
+      <div class="panel-body">
+        <div class="alarm"><b></b><div>运行状态正常<small>系统　刚刚</small></div></div>
+        <div class="alarm warn"><b></b><div>振动趋势轻微上升<small>监测点 VB-01　12 min前</small></div></div>
+        <div class="alarm"><b></b><div>润滑状态正常<small>轴承组　28 min前</small></div></div>
+      </div>
+    </section>
+
+    <section class="panel glass" style="flex:1">
+      <div class="panel-head"><span>智能分析</span><span>AI / TWIN</span></div>
+      <div class="panel-body">
+        <div class="metric" style="margin-bottom:8px"><label>当前工况</label><strong style="font-size:14px">额定工况附近</strong><div class="footer-note">转速稳定 · 流量正常 · 压力稳定</div></div>
+        <div class="metric" style="margin-bottom:8px"><label>状态评估</label><strong class="good">健康运行</strong><div class="footer-note">暂未检测到明显异常特征</div></div>
+        <div class="metric"><label>数字孪生扩展</label><strong class="blue">READY</strong><div class="footer-note">可接入实时数据、机理模型、预测维护与历史工单</div></div>
+      </div>
+    </section>
+  </aside>
+
+  <div id="centerTools">
+    <button class="active" onclick="setView('iso')">等轴测</button>
+    <button onclick="setView('front')">前视</button>
+    <button onclick="setView('top')">俯视</button>
+    <button onclick="setView('side')">侧视</button>
+  </div>
+
+  <div id="hint">左键旋转 · 滚轮缩放 · 右键平移 · 点击零件查看属性</div>
+
+  <section id="selection" class="panel glass">
+    <div class="panel-body">
+      <div class="selection-title">SELECTED COMPONENT</div>
+      <div class="selection-name" id="selName">—</div>
+      <div class="selection-row"><span>状态</span><b class="good">正常</b></div>
+      <div class="selection-row"><span>模型对象</span><span id="selType">Mesh</span></div>
+    </div>
+  </section>
+
+  <section id="bottom" class="panel glass">
+    <div class="panel-head"><span>关键监测趋势</span><span><select id="chartSelect" onchange="drawChart()"><option value="vib">振动 RMS</option><option value="temp">轴承温度</option><option value="flow">流量</option><option value="pressure">出口压力</option></select></span></div>
+    <div class="chart-wrap"><canvas id="chart" class="chart"></canvas></div>
+  </section>
+
+  <div id="toast"></div>
+</div>
+
 <script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"
-  }
-}
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.164.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/"}}
 </script>
 <script type="module">
 import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
+import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
-const container = document.getElementById('container');
-const tip = document.getElementById('tip');
-const statusEl = document.getElementById('status');
+const container=document.getElementById('container'), loading=document.getElementById('loading');
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0x07111f);
+const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.01,100000);
+const renderer=new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15;
+renderer.outputColorSpace=THREE.SRGBColorSpace; container.appendChild(renderer.domElement);
+const controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.07;
+controls.minDistance=.1; controls.maxDistance=100000;
 
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xdfe6ec);
+const pmrem=new THREE.PMREMGenerator(renderer);
+scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;
+scene.add(new THREE.HemisphereLight(0xdceeff,0x16283a,.8));
+const l1=new THREE.DirectionalLight(0xffffff,1.5); l1.position.set(5,8,6); scene.add(l1);
+const l2=new THREE.DirectionalLight(0x6bbcff,.8); l2.position.set(-5,2,-6); scene.add(l2);
 
-const camera = new THREE.PerspectiveCamera(55, container.clientWidth / container.clientHeight, 0.01, 100000);
-camera.position.set(3, 2, 4);
+const draco=new DRACOLoader(); draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/libs/draco/');
+const loader=new GLTFLoader(); loader.setDRACOLoader(draco);
+let model,meshList=[],original=new Map(),anchors=new Map(),center=new THREE.Vector3(),size=1,selected=null,wire=false;
 
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(container.clientWidth, container.clientHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
-container.appendChild(renderer.domElement);
-
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.08;
-
-/* ========== 灯光（解决金属件发暗） ========== */
-// 关键：环境贴图——给金属件提供反射环境，否则PBR金属材质发黑
-const pmrem = new THREE.PMREMGenerator(renderer);
-scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-
-// 半球光 + 环境光 + 双方向光
-scene.add(new THREE.HemisphereLight(0xffffff, 0x3a4a5a, 0.7));
-scene.add(new THREE.AmbientLight(0xffffff, 0.35));
-const dir1 = new THREE.DirectionalLight(0xffffff, 1.4);
-dir1.position.set(5, 8, 6);
-scene.add(dir1);
-const dir2 = new THREE.DirectionalLight(0x99bbff, 0.6);
-dir2.position.set(-4, -2, -6);
-scene.add(dir2);
-
-/* ========== 加载模型 ========== */
-const draco = new DRACOLoader();
-draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/libs/draco/');
-const loader = new GLTFLoader();
-loader.setDRACOLoader(draco);
-
-let model, meshList = [], originalPositions = new Map(), anchors = new Map();
-let modelSize = 1, modelCenter = new THREE.Vector3();
-let explodeRatio = 0, selected = null, selectedMat = null;
-
-const raycaster = new THREE.Raycaster();
-const pointer = new THREE.Vector2();
-
-loader.load('./model.glb', gltf => {
-  model = gltf.scene;
-  scene.add(model);
-
-  // 统一把每个零件挂到model根下（保持世界位置不变），
-  // 消除GLB嵌套层级干扰，保证爆炸方向计算正确
-  model.updateMatrixWorld(true);
-  const tmp = [];
-  model.traverse(child => { if (child.isMesh) tmp.push(child); });
-  tmp.forEach(m => {
-    model.attach(m);                      // 保持世界变换，改为model直接子级
-    meshList.push(m);
-    originalPositions.set(m, m.position.clone());
-    // 关键：SW导出GLB时常把零件位置烘焙进顶点坐标，导致mesh.position全是(0,0,0)。
-    // 因此用每个零件自身包围盒中心作为"锚点"，爆炸方向才能真正发散
-    const box = new THREE.Box3().setFromObject(m);
-    const c = new THREE.Vector3();
-    box.getCenter(c);
-    anchors.set(m, c);
+loader.load('./model.glb',g=>{
+  model=g.scene; scene.add(model); model.updateMatrixWorld(true);
+  const all=[]; model.traverse(o=>{if(o.isMesh)all.push(o)});
+  all.forEach(m=>{model.attach(m);meshList.push(m);original.set(m,m.position.clone());
+    const b=new THREE.Box3().setFromObject(m),c=new THREE.Vector3();b.getCenter(c);anchors.set(m,c);
   });
+  const box=new THREE.Box3().setFromObject(model);size=box.getSize(new THREE.Vector3()).length();box.getCenter(center);
+  focusModel(); loading.style.display='none';
+  if(meshList.length===1) showToast('提示：当前 GLB 只有 1 个 Mesh，可能无法进行部件级分解');
+},undefined,e=>{document.getElementById('loadText').textContent='模型加载失败：'+e.message});
 
-  // 计算模型尺寸与中心（自适应，任何单位/大小都有效）
-  const box = new THREE.Box3().setFromObject(model);
-  modelSize = box.getSize(new THREE.Vector3()).length();
-  box.getCenter(modelCenter);
-
-  // 自动取景
-  const dist = modelSize * 1.6;
-  camera.position.set(dist * 0.6, dist * 0.5, dist * 0.8);
-  camera.lookAt(modelCenter);
-  controls.target.copy(modelCenter);
-  controls.update();
-
-  statusEl.textContent = '加载完成：' + meshList.length + ' 个零件';
-  if (meshList.length === 1) {
-    statusEl.textContent = '警告：只找到1个Mesh——导出GLB时可能勾选了"合并网格"，导致零件无法分解/单独高亮，请重新导出并取消合并选项';
-  }
-}, undefined, err => {
-  statusEl.textContent = '加载失败：' + err.message;
-  console.error(err);
-});
-
-/* ========== 爆炸分解（距离按模型尺寸自适应 + 滑块控制） ========== */
-const slider = document.getElementById('explodeSlider');
-const btn = document.getElementById('explodeBtn');
-
-function applyExplode() {
-  const dist = modelSize * explodeRatio * 0.55; // 最大爆炸位移 = 模型尺寸的35%
-  meshList.forEach(m => {
-    const origin = originalPositions.get(m);
-    if (explodeRatio <= 0) { m.position.copy(origin); return; }
-    const anchor = anchors.get(m);
-    const dir = anchor.clone().sub(modelCenter); // 从模型中心指向零件自身包围盒中心，方向必然发散
-    if (dir.lengthSq() < 1e-8) dir.set(1, 0, 0);  // 防止中心点零件方向为0
-    dir.normalize();
-    m.position.copy(origin).addScaledVector(dir, dist);
+function focusModel(){
+  if(!model)return; const d=size*1.65;
+  camera.position.set(d*.62,d*.48,d*.82); camera.lookAt(center); controls.target.copy(center);controls.update();
+}
+window.focusModel=focusModel;
+function applyExplode(v){
+  if(!model)return; const d=size*v*.55;
+  meshList.forEach(m=>{
+    const o=original.get(m);
+    if(v===0){m.position.copy(o);return}
+    let dir=anchors.get(m).clone().sub(center);if(dir.lengthSq()<1e-8)dir.set(1,0,0);dir.normalize();
+    m.position.copy(o).addScaledVector(dir,d);
   });
 }
+window.explode=v=>{document.getElementById('explodeSlider').value=v*100;applyExplode(v);showToast(v?'已展开部件':'已恢复模型')};
+document.getElementById('explodeSlider').oninput=e=>applyExplode(+e.target.value/100);
 
-slider.oninput = () => {
-  explodeRatio = slider.value / 100;
-  btn.textContent = explodeRatio > 0 ? '部件复原' : '部件分解';
-  applyExplode();
-};
-btn.onclick = () => {
-  slider.value = explodeRatio > 0 ? 0 : 100;
-  explodeRatio = explodeRatio > 0 ? 0 : 1;
-  btn.textContent = explodeRatio > 0 ? '部件复原' : '部件分解';
-  applyExplode();
-};
+function wireframe(){
+  wire=!wire; meshList.forEach(m=>m.material&&(m.material.wireframe=wire));showToast(wire?'线框模式':'实体模式');
+}
+window.wireframe=wireframe;
 
-/* ========== 点击高亮 ========== */
-container.addEventListener('pointerdown', e => {
-  pointer.x = (e.clientX / container.clientWidth) * 2 - 1;
-  pointer.y = -(e.clientY / container.clientHeight) * 2 + 1;
-  raycaster.setFromCamera(pointer, camera);
-  const hits = raycaster.intersectObjects(meshList);
+function setView(v){
+  if(!model)return; const d=size*1.65;
+  const p={iso:[.62,.48,.82],front:[0,0,d],top:[0,d,0],side:[d,0,0]}[v];
+  camera.position.set(center.x+p[0],center.y+p[1],center.z+p[2]);camera.lookAt(center);controls.target.copy(center);controls.update();
+  document.querySelectorAll('#centerTools button').forEach(b=>b.classList.remove('active'));
+  [...document.querySelectorAll('#centerTools button')].find(b=>b.textContent.includes({iso:'等轴测',front:'前视',top:'俯视',side:'侧视'}[v]))?.classList.add('active');
+}
+window.setView=setView;
 
-  // 先恢复上一个选中
-  if (selected) { selected.material = selectedMat; selected = null; selectedMat = null; }
-
-  if (hits.length) {
-    selected = hits[0].object;
-    selectedMat = selected.material;
-    selected.material = selected.material.clone(); // 克隆材质再高亮，避免污染共享材质
-    selected.material.emissive = new THREE.Color(0x33aaff);
-    selected.material.emissiveIntensity = 0.55;
-    tip.textContent = '选中零件：' + (selected.name || '未命名');
-  } else {
-    tip.textContent = '左键旋转 / 滚轮缩放 / 右键平移 / 点击零件高亮';
+const ray=new THREE.Raycaster(),ptr=new THREE.Vector2();
+container.addEventListener('pointerdown',e=>{
+  if(e.button!==0)return;
+  ptr.x=e.clientX/innerWidth*2-1;ptr.y=-(e.clientY/innerHeight)*2+1;ray.setFromCamera(ptr,camera);
+  const hit=ray.intersectObjects(meshList,false)[0];
+  if(selected){selected.material=selected._oldMat;selected=null}
+  if(hit){
+    selected=hit.object;selected._oldMat=selected.material;selected.material=selected.material.clone();
+    selected.material.emissive=new THREE.Color(0x168bff);selected.material.emissiveIntensity=.65;
+    document.getElementById('selName').textContent=selected.name||'未命名零件';
+    document.getElementById('selection').style.display='block';
+    setTimeout(()=>document.getElementById('selection').style.display='none',5000);
   }
 });
 
-/* ========== 窗口自适应 + 渲染循环 ========== */
-window.addEventListener('resize', () => {
-  camera.aspect = container.clientWidth / container.clientHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(container.clientWidth, container.clientHeight);
-});
+window.selectByKeyword=k=>{
+  const m=meshList.find(x=>(x.name||'').toLowerCase().includes(k.toLowerCase()));
+  if(m){selected=m;document.getElementById('selName').textContent=m.name||k;document.getElementById('selection').style.display='block';setTimeout(()=>document.getElementById('selection').style.display='none',5000)}
+  else showToast('未在当前 GLB 中找到名称包含“'+k+'”的对象');
+};
 
-function animate() {
-  requestAnimationFrame(animate);
-  controls.update();
-  renderer.render(scene, camera);
+window.resetView=()=>{setView('iso');applyExplode(0);showToast('已恢复设备总览')};
+window.toggleFullscreen=()=>{document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()};
+
+function showToast(t){const x=document.getElementById('toast');x.textContent=t;x.classList.add('show');clearTimeout(window.__toast);window.__toast=setTimeout(()=>x.classList.remove('show'),1800)}
+window.showToast=showToast;
+
+function tick(){
+  const now=new Date();document.getElementById('clock').textContent=now.toLocaleTimeString('zh-CN',{hour12:false});
+  const rpm=1480+Math.sin(Date.now()/1700)*7+Math.random()*2;
+  const flow=86.2+Math.sin(Date.now()/2200)*1.8;
+  const temp=56.4+Math.sin(Date.now()/3300)*.7;
+  const vib=2.31+Math.sin(Date.now()/1800)*.12+Math.random()*.04;
+  document.getElementById('rpm').textContent=rpm.toFixed(0);
+  document.getElementById('flow').textContent=flow.toFixed(1);
+  document.getElementById('temp').textContent=temp.toFixed(1);
+  document.getElementById('vib').textContent=vib.toFixed(2);
+  document.getElementById('pressure').textContent=(.72+Math.sin(Date.now()/2500)*.015).toFixed(2);
+  document.getElementById('power').textContent=(38.6+Math.sin(Date.now()/1900)*.8).toFixed(1);
 }
-animate();
+setInterval(tick,1000);tick();
+
+const chart=document.getElementById('chart'),ctx=chart.getContext('2d');
+let history=Array.from({length:70},(_,i)=>2.15+Math.sin(i*.23)*.13+Math.random()*.08);
+function drawChart(){
+  const w=chart.clientWidth,h=chart.clientHeight,d=devicePixelRatio;chart.width=w*d;chart.height=h*d;ctx.setTransform(d,0,0,d,0,0);
+  ctx.clearRect(0,0,w,h);ctx.strokeStyle='rgba(119,170,220,.12)';ctx.lineWidth=1;
+  for(let i=1;i<4;i++){let y=h*i/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+  const key=document.getElementById('chartSelect').value;
+  let arr=history.map((v,i)=>key==='temp'?52+v*1.8:key==='flow'?84+v*1.2:key==='pressure'?.69+v*.012:v);
+  const mn=Math.min(...arr)-.15,mx=Math.max(...arr)+.15;
+  ctx.beginPath();arr.forEach((v,i)=>{const x=i*(w-8)/(arr.length-1)+4,y=h-5-(v-mn)/(mx-mn)*(h-10);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle='#42e6d0';ctx.lineWidth=2;ctx.stroke();
+}
+function pushChart(){history.push(2.15+Math.sin(Date.now()/1800)*.13+Math.random()*.08);history.shift();drawChart()}
+window.drawChart=drawChart;setInterval(pushChart,1000);addEventListener('resize',()=>{drawChart();renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()});drawChart();
+
+function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
 </script>
 </body>
-</html>
+</html>'''
+
+out.write_text(html, encoding="utf-8")
+print(out)
+print(f"已生成：{out.stat().st_size/1024:.1f} KB")
