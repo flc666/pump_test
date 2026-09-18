@@ -1,4 +1,9 @@
-<!DOCTYPE html>
+from pathlib import Path
+
+src = Path("/mnt/data/d5a531f0-2f97-4443-87dd-258203e66e56.html")
+out = Path("/mnt/data/离心泵展示界面.html")
+
+html = r'''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -311,4 +316,8 @@ window.drawChart=drawChart;setInterval(pushChart,1000);addEventListener('resize'
 function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
 </script>
 </body>
-</html>
+</html>'''
+
+out.write_text(html, encoding="utf-8")
+print(out)
+print(f"已生成：{out.stat().st_size/1024:.1f} KB")
