@@ -1,9 +1,4 @@
-from pathlib import Path
-
-src = Path("/mnt/data/d5a531f0-2f97-4443-87dd-258203e66e56.html")
-out = Path("/mnt/data/离心泵展示界面.html")
-
-html = r'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
@@ -11,27 +6,35 @@ html = r'''<!DOCTYPE html>
 <title>离心泵智能运维平台</title>
 <style>
 :root{
-  --bg:#07111f;--panel:rgba(11,25,43,.88);--panel2:rgba(15,34,57,.92);
-  --line:rgba(119,170,220,.18);--text:#e7f1fb;--muted:#8ea6bf;
-  --blue:#38a8ff;--cyan:#42e6d0;--green:#3ed598;--yellow:#f5c451;
-  --red:#ff6578;--shadow:0 12px 40px rgba(0,0,0,.28);
+  --bg:#eef4fa;
+  --panel:rgba(255,255,255,.72);
+  --panel2:rgba(240,247,255,.82);
+  --line:rgba(140,170,200,.28);
+  --text:#15354f;
+  --muted:#4f6b87;
+  --blue:#1f7ee0;
+  --cyan:#17b0a1;
+  --green:#1fa864;
+  --yellow:#d99a2b;
+  --red:#e5484d;
+  --shadow:0 12px 40px rgba(31,87,140,.18);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html,body{width:100%;height:100%;overflow:hidden;font-family:"Microsoft YaHei","Segoe UI",sans-serif;background:var(--bg);color:var(--text)}
+html,body{width:100%;height:100%;overflow:hidden;font-family:"Microsoft YaHei","Segoe UI",sans-serif;background:linear-gradient(135deg,#f7fafc 0%,#e4eefb 100%);color:var(--text)}
 button,input{font:inherit}
 #container{position:absolute;inset:0}
 canvas{display:block}
 #app{position:absolute;inset:0;pointer-events:none}
 .panel,.clickable,.toolbar button,.tree-item{pointer-events:auto}
-.glass{background:linear-gradient(135deg,rgba(17,37,61,.94),rgba(8,22,38,.84));border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(16px)}
-#topbar{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);background:rgba(4,13,25,.78);backdrop-filter:blur(16px)}
+.glass{background:linear-gradient(135deg,rgba(255,255,255,.86),rgba(232,242,255,.76));border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(18px)}
+#topbar{height:68px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.62);backdrop-filter:blur(18px)}
 .brand{display:flex;align-items:center;gap:12px}
-.logo{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#1a9dff,#2d5cff);font-weight:800;font-size:18px;box-shadow:0 0 24px rgba(56,168,255,.28)}
-.brand h1{font-size:17px;font-weight:650;letter-spacing:.5px}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
-.status{display:flex;align-items:center;gap:8px;color:#b9cbe0;font-size:12px}
+.logo{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:linear-gradient(135deg,#3aa7ff,#1f6fe0);font-weight:800;font-size:18px;color:#fff;box-shadow:0 0 24px rgba(31,126,224,.35)}
+.brand h1{font-size:17px;font-weight:650;letter-spacing:.5px;color:#0f2a44}.brand small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.status{display:flex;align-items:center;gap:8px;color:#244966;font-size:12px}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green)}
-.top-actions{display:flex;gap:8px}.top-actions button,.toolbar button{border:1px solid var(--line);background:rgba(20,43,69,.8);color:#dceafa;border-radius:7px;padding:8px 12px;cursor:pointer}
-.top-actions button:hover,.toolbar button:hover{background:rgba(36,73,112,.9);border-color:rgba(56,168,255,.5)}
+.top-actions button,.toolbar button{border:1px solid rgba(31,126,224,.35);background:rgba(255,255,255,.72);color:#143554;border-radius:7px;padding:8px 12px;cursor:pointer}
+.top-actions button:hover,.toolbar button:hover{background:rgba(219,236,255,.9);border-color:rgba(31,126,224,.6)}
 #left{position:absolute;left:16px;top:84px;bottom:16px;width:270px;display:flex;flex-direction:column;gap:12px}
 #right{position:absolute;right:16px;top:84px;bottom:16px;width:310px;display:flex;flex-direction:column;gap:12px}
 .panel{border-radius:12px;overflow:hidden}
@@ -39,33 +42,43 @@ canvas{display:block}
 .panel-head span:last-child{color:var(--muted);font-size:11px;font-weight:400}
 .panel-body{padding:12px}
 .tree{max-height:315px;overflow:auto;padding:7px}
-.tree-item{display:flex;align-items:center;gap:8px;padding:9px 9px;color:#bdcfe2;font-size:12px;border-radius:7px;cursor:pointer}
-.tree-item:hover,.tree-item.active{background:rgba(56,168,255,.12);color:#fff}
-.icon{width:22px;text-align:center;color:#6fc5ff}.sub{padding-left:32px}
+.tree-item{display:flex;align-items:center;gap:8px;padding:9px 9px;color:#224466;font-size:12px;border-radius:7px;cursor:pointer}
+.tree-item:hover,.tree-item.active{background:rgba(31,126,224,.12);color:#103055}
+.icon{width:22px;text-align:center;color:#1f7ee0}.sub{padding-left:32px}
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.metric{padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.025)}
+.metric{padding:10px;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.45)}
 .metric label{display:block;color:var(--muted);font-size:10px;margin-bottom:5px}.metric strong{font-size:16px;font-weight:650}.metric em{font-style:normal;font-size:10px;color:var(--muted);margin-left:3px}
 .good{color:var(--green)}.warn{color:var(--yellow)}.bad{color:var(--red)}.blue{color:var(--blue)}
-.alarm{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid rgba(119,170,220,.1);font-size:11px}
+.alarm{display:flex;gap:9px;padding:9px 0;border-bottom:1px solid rgba(140,170,200,.2);font-size:11px}
 .alarm:last-child{border:0}.alarm b{width:6px;height:6px;border-radius:50%;margin-top:4px;background:var(--green)}.alarm.warn b{background:var(--yellow)}.alarm.bad b{background:var(--red)}
 .alarm small{display:block;color:var(--muted);margin-top:3px}
 #bottom{position:absolute;left:300px;right:340px;bottom:16px;height:164px;border-radius:12px}
 .chart-wrap{height:116px;padding:7px 12px 12px}.chart{width:100%;height:100%}
 #centerTools{position:absolute;left:50%;top:82px;transform:translateX(-50%);display:flex;gap:6px}
-#centerTools button{pointer-events:auto;border:1px solid var(--line);background:rgba(7,20,35,.82);color:#dceafa;padding:8px 12px;border-radius:7px;cursor:pointer;font-size:11px;backdrop-filter:blur(12px)}
-#centerTools button.active{background:rgba(35,111,177,.55);border-color:rgba(66,230,208,.45);color:#fff}
-#hint{position:absolute;left:50%;bottom:195px;transform:translateX(-50%);font-size:11px;color:#8ca4bb;background:rgba(4,13,24,.6);padding:7px 12px;border-radius:20px;border:1px solid rgba(119,170,220,.12)}
+#centerTools button{pointer-events:auto;border:1px solid rgba(31,126,224,.35);background:rgba(255,255,255,.72);color:#143554;padding:8px 12px;border-radius:7px;cursor:pointer;font-size:11px;backdrop-filter:blur(12px)}
+#centerTools button.active{background:rgba(31,126,224,.55);border-color:rgba(23,176,161,.45);color:#fff}
+#hint{position:absolute;left:50%;bottom:195px;transform:translateX(-50%);font-size:11px;color:#244966;background:rgba(255,255,255,.75);padding:7px 12px;border-radius:20px;border:1px solid rgba(140,170,200,.28)}
 #selection{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:none;width:230px}
-.selection-title{font-size:12px;color:#7fc9ff;margin-bottom:7px}.selection-name{font-size:16px;font-weight:650}.selection-row{display:flex;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:11px}
-#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#07111f;z-index:20;color:#9bb3ca;pointer-events:auto}
-.spinner{width:28px;height:28px;border:3px solid rgba(255,255,255,.12);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin-right:12px}@keyframes spin{to{transform:rotate(360deg)}}
-#toast{position:absolute;left:50%;top:145px;transform:translateX(-50%);padding:9px 16px;border-radius:8px;background:rgba(6,18,31,.94);border:1px solid rgba(56,168,255,.3);font-size:12px;opacity:0;transition:.25s}
+.selection-title{font-size:12px;color:#1f7ee0;margin-bottom:7px}.selection-name{font-size:16px;font-weight:650}.selection-row{display:flex;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:11px}
+#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#eef4fa;z-index:20;color:#244966;pointer-events:auto}
+.spinner{width:28px;height:28px;border:3px solid rgba(31,126,224,.18);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin-right:12px}@keyframes spin{to{transform:rotate(360deg)}}
+#toast{position:absolute;left:50%;top:145px;transform:translateX(-50%);padding:9px 16px;border-radius:8px;background:rgba(255,255,255,.86);border:1px solid rgba(31,126,224,.35);font-size:12px;color:#15354f;opacity:0;transition:.25s}
 #toast.show{opacity:1}
-select{background:#0d2238;color:#dceafa;border:1px solid var(--line);border-radius:5px;padding:5px;font-size:11px}
+select{background:#ffffff;color:#15354f;border:1px solid var(--line);border-radius:5px;padding:5px;font-size:11px}
 .range{width:100%}
-.footer-note{font-size:10px;color:#718ba5;line-height:1.6}
+.footer-note{font-size:10px;color:#4f6b87;line-height:1.6}
 </style>
 </head>
+<script>
+fetch("http://127.0.0.1:8000/pump/data")
+    .then(response => response.json())
+    .then(data => {
+        console.log("Python API返回的数据：", data);
+    })
+    .catch(error => {
+        console.error("获取Python API数据失败：", error);
+    });
+</script>
 <body>
 <div id="container"></div>
 <div id="loading"><div class="spinner"></div><span id="loadText">正在加载离心泵三维模型…</span></div>
@@ -115,7 +128,7 @@ select{background:#0d2238;color:#dceafa;border:1px solid var(--line);border-radi
     <section class="panel glass" style="flex:1">
       <div class="panel-head"><span>运行状态</span><span id="healthText">正常</span></div>
       <div class="panel-body">
-        <div style="height:8px;background:#10283e;border-radius:5px;overflow:hidden;margin:5px 0 12px"><div id="healthBar" style="height:100%;width:92%;background:linear-gradient(90deg,#32c98b,#42e6d0);border-radius:5px"></div></div>
+        <div style="height:8px;background:#d7e4f2;border-radius:5px;overflow:hidden;margin:5px 0 12px"><div id="healthBar" style="height:100%;width:92%;background:linear-gradient(90deg,#32c98b,#42e6d0);border-radius:5px"></div></div>
         <div class="kv">
           <div class="metric"><label>设备健康度</label><strong class="good" id="health">92</strong><em>%</em></div>
           <div class="metric"><label>运行时长</label><strong>8,426</strong><em>h</em></div>
@@ -196,51 +209,117 @@ import {DRACOLoader} from 'three/addons/loaders/DRACOLoader.js';
 import {RoomEnvironment} from 'three/addons/environments/RoomEnvironment.js';
 
 const container=document.getElementById('container'), loading=document.getElementById('loading');
-const scene=new THREE.Scene(); scene.background=new THREE.Color(0x07111f);
-const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.01,100000);
+const scene=new THREE.Scene(); scene.background=new THREE.Color(0xf0f6fc); // 三维画布浅色背景
+const camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,0.1,200);
 const renderer=new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.15;
+renderer.setSize(innerWidth,innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
+renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.25; // 稍微提亮模型
 renderer.outputColorSpace=THREE.SRGBColorSpace; container.appendChild(renderer.domElement);
-const controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.07;
-controls.minDistance=.1; controls.maxDistance=100000;
+const controls=new OrbitControls(camera,renderer.domElement); controls.enableDamping=true; controls.dampingFactor=.12;
+controls.minDistance=0.1; controls.maxDistance=200;
 
 const pmrem=new THREE.PMREMGenerator(renderer);
-scene.environment=pmrem.fromScene(new RoomEnvironment(),.04).texture;
-scene.add(new THREE.HemisphereLight(0xdceeff,0x16283a,.8));
-const l1=new THREE.DirectionalLight(0xffffff,1.5); l1.position.set(5,8,6); scene.add(l1);
-const l2=new THREE.DirectionalLight(0x6bbcff,.8); l2.position.set(-5,2,-6); scene.add(l2);
+scene.environment=pmrem.fromScene(new RoomEnvironment(),.06).texture;
+scene.add(new THREE.HemisphereLight(0xffffff,0xb0c8e2,1.0)); // 环境光提亮适配浅色背景
+const l1=new THREE.DirectionalLight(0xffffff,1.6); l1.position.set(5,8,6); scene.add(l1);
+const l2=new THREE.DirectionalLight(0x70a8e8,.9); l2.position.set(-5,2,-6); scene.add(l2);
 
 const draco=new DRACOLoader(); draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.164.1/examples/jsm/libs/draco/');
 const loader=new GLTFLoader(); loader.setDRACOLoader(draco);
-let model,meshList=[],original=new Map(),anchors=new Map(),center=new THREE.Vector3(),size=1,selected=null,wire=false;
+let model,meshList=[],originalWorldPos=new Map(),partWorldCenter=new Map(),modelCenter=new THREE.Vector3(),modelSize=1,selected=null,wire=false;
 
 loader.load('./model.glb',g=>{
-  model=g.scene; scene.add(model); model.updateMatrixWorld(true);
-  const all=[]; model.traverse(o=>{if(o.isMesh)all.push(o)});
-  all.forEach(m=>{model.attach(m);meshList.push(m);original.set(m,m.position.clone());
-    const b=new THREE.Box3().setFromObject(m),c=new THREE.Vector3();b.getCenter(c);anchors.set(m,c);
+  model=g.scene;
+  scene.add(model);
+
+  // SolidWorks毫米模型自动缩放 mm转m
+  const bboxRaw = new THREE.Box3().setFromObject(g.scene);
+  const lenRaw = bboxRaw.getSize(new THREE.Vector3()).length();
+  if(lenRaw > 50){
+    const scale = 0.001;
+    model.scale.set(scale,scale,scale);
+    showToast("检测到大尺寸模型，自动缩放0.001倍(mm→m)");
+  }
+  model.updateMatrixWorld(true);
+
+  const allMeshes=[];
+  model.traverse(o=>{
+    if(o.isMesh){
+      allMeshes.push(o);
+      o.material.polygonOffset = true;
+      o.material.polygonOffsetFactor = 1;
+      o.material.polygonOffsetUnits = 1;
+      if(o.material.side === THREE.DoubleSide){
+        o.material.side = THREE.FrontSide;
+      }
+    }
   });
-  const box=new THREE.Box3().setFromObject(model);size=box.getSize(new THREE.Vector3()).length();box.getCenter(center);
-  focusModel(); loading.style.display='none';
-  if(meshList.length===1) showToast('提示：当前 GLB 只有 1 个 Mesh，可能无法进行部件级分解');
+
+  // 遍历所有mesh，保存原始世界位置、零件世界中心
+  allMeshes.forEach(mesh=>{
+    meshList.push(mesh);
+
+    // 保存零件原始世界位置，避免模型缩放/父子层级导致局部坐标与世界坐标混用
+    const worldPos = new THREE.Vector3();
+    mesh.getWorldPosition(worldPos);
+    originalWorldPos.set(mesh, worldPos);
+
+    // 获取零件世界包围盒中心，用于爆炸方向
+    const box = new THREE.Box3().setFromObject(mesh);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+    partWorldCenter.set(mesh, center);
+  })
+
+  // 整个模型包围盒
+  const totalBox=new THREE.Box3().setFromObject(model);
+  totalBox.getCenter(modelCenter);
+  modelSize=totalBox.getSize(new THREE.Vector3()).length();
+
+  focusModel();
+  loading.style.display='none';
+  if(meshList.length===1) showToast('⚠️ 当前 GLB 仅1个Mesh，无法部件爆炸！需要SolidWorks导出时保留独立零件');
 },undefined,e=>{document.getElementById('loadText').textContent='模型加载失败：'+e.message});
 
 function focusModel(){
-  if(!model)return; const d=size*1.65;
-  camera.position.set(d*.62,d*.48,d*.82); camera.lookAt(center); controls.target.copy(center);controls.update();
+  if(!model)return; const d=modelSize*1.65;
+  camera.position.set(d*.62,d*.48,d*.82); camera.lookAt(modelCenter); controls.target.copy(modelCenter);controls.update();
 }
 window.focusModel=focusModel;
-function applyExplode(v){
-  if(!model)return; const d=size*v*.55;
-  meshList.forEach(m=>{
-    const o=original.get(m);
-    if(v===0){m.position.copy(o);return}
-    let dir=anchors.get(m).clone().sub(center);if(dir.lengthSq()<1e-8)dir.set(1,0,0);dir.normalize();
-    m.position.copy(o).addScaledVector(dir,d);
-  });
+
+// ========== 修复后的爆炸函数 ==========
+function applyExplode(ratio){
+  if(!model) return;
+  const explodeDistance = modelSize * ratio * 0.55;
+
+  meshList.forEach(mesh=>{
+    const originWorldPos = originalWorldPos.get(mesh);
+    if(!originWorldPos) return;
+
+    const partC = partWorldCenter.get(mesh);
+
+    // 爆炸方向：零件世界中心远离整体模型中心
+    let dir = new THREE.Vector3().subVectors(partC, modelCenter);
+    if(dir.lengthSq() < 1e-10) dir.set(1,0,0);
+    dir.normalize();
+
+    // 在世界坐标中计算目标位置
+    const targetWorldPos = originWorldPos.clone()
+      .addScaledVector(dir, explodeDistance);
+
+    // mesh.position 是父节点局部坐标，因此转换后再赋值
+    const targetLocalPos = mesh.parent
+      ? mesh.parent.worldToLocal(targetWorldPos)
+      : targetWorldPos;
+
+    mesh.position.copy(targetLocalPos);
+  })
 }
-window.explode=v=>{document.getElementById('explodeSlider').value=v*100;applyExplode(v);showToast(v?'已展开部件':'已恢复模型')};
+window.explode=v=>{
+  document.getElementById('explodeSlider').value=v*100;
+  applyExplode(v);
+  showToast(v?'已展开部件':'已恢复模型')
+};
 document.getElementById('explodeSlider').oninput=e=>applyExplode(+e.target.value/100);
 
 function wireframe(){
@@ -249,9 +328,9 @@ function wireframe(){
 window.wireframe=wireframe;
 
 function setView(v){
-  if(!model)return; const d=size*1.65;
+  if(!model)return; const d=modelSize*1.65;
   const p={iso:[d*.62,d*.48,d*.82],front:[0,0,d],top:[0,d,0],side:[d,0,0]}[v];
-  camera.position.set(center.x+p[0],center.y+p[1],center.z+p[2]);camera.lookAt(center);controls.target.copy(center);controls.update();
+  camera.position.set(modelCenter.x+p[0],modelCenter.y+p[1],modelCenter.z+p[2]);camera.lookAt(modelCenter);controls.target.copy(modelCenter);controls.update();
   document.querySelectorAll('#centerTools button').forEach(b=>b.classList.remove('active'));
   [...document.querySelectorAll('#centerTools button')].find(b=>b.textContent.includes({iso:'等轴测',front:'前视',top:'俯视',side:'侧视'}[v]))?.classList.add('active');
 }
@@ -262,7 +341,10 @@ container.addEventListener('pointerdown',e=>{
   if(e.button!==0)return;
   ptr.x=e.clientX/innerWidth*2-1;ptr.y=-(e.clientY/innerHeight)*2+1;ray.setFromCamera(ptr,camera);
   const hit=ray.intersectObjects(meshList,false)[0];
-  if(selected){selected.material=selected._oldMat;selected=null}
+  if(selected){
+    selected.material = selected._oldMat;
+    selected = null;
+  }
   if(hit){
     selected=hit.object;selected._oldMat=selected.material;selected.material=selected.material.clone();
     selected.material.emissive=new THREE.Color(0x168bff);selected.material.emissiveIntensity=.65;
@@ -272,10 +354,39 @@ container.addEventListener('pointerdown',e=>{
   }
 });
 
+// 修复selectByKeyword，解决点击树节点卡死问题
 window.selectByKeyword=k=>{
   const m=meshList.find(x=>(x.name||'').toLowerCase().includes(k.toLowerCase()));
-  if(m){selected=m;document.getElementById('selName').textContent=m.name||k;document.getElementById('selection').style.display='block';setTimeout(()=>document.getElementById('selection').style.display='none',5000)}
+  // 先清除上一个选中零件的高亮
+  if(selected){
+    selected.material = selected._oldMat;
+    selected = null;
+  }
+  if(m){
+    selected=m;
+    // 备份原始材质 + 克隆并添加自发光高亮，和画布点击逻辑保持一致
+    selected._oldMat = selected.material;
+    selected.material = selected.material.clone();
+    selected.material.emissive=new THREE.Color(0x168bff);
+    selected.material.emissiveIntensity=.65;
+
+    document.getElementById('selName').textContent=m.name||k;
+    document.getElementById('selection').style.display='block';
+    setTimeout(()=>document.getElementById('selection').style.display='none',5000)
+  }
   else showToast('未在当前 GLB 中找到名称包含“'+k+'”的对象');
+  // 选中后自动取景到零件
+const box = new THREE.Box3().setFromObject(m);
+const center = new THREE.Vector3();
+box.getCenter(center);
+const size = new THREE.Vector3();
+box.getSize(size);
+const dist = size.length() * 1.8;
+camera.position.copy(center).add(new THREE.Vector3(dist*0.6, dist*0.4, dist*0.8));
+camera.lookAt(center);
+controls.target.copy(center);
+controls.update();
+
 };
 
 window.resetView=()=>{setView('iso');applyExplode(0);showToast('已恢复设备总览')};
@@ -303,12 +414,12 @@ const chart=document.getElementById('chart'),ctx=chart.getContext('2d');
 let history=Array.from({length:70},(_,i)=>2.15+Math.sin(i*.23)*.13+Math.random()*.08);
 function drawChart(){
   const w=chart.clientWidth,h=chart.clientHeight,d=devicePixelRatio;chart.width=w*d;chart.height=h*d;ctx.setTransform(d,0,0,d,0,0);
-  ctx.clearRect(0,0,w,h);ctx.strokeStyle='rgba(119,170,220,.12)';ctx.lineWidth=1;
+  ctx.clearRect(0,0,w,h);ctx.strokeStyle='rgba(140,170,200,.25)';ctx.lineWidth=1;
   for(let i=1;i<4;i++){let y=h*i/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
   const key=document.getElementById('chartSelect').value;
   let arr=history.map((v,i)=>key==='temp'?52+v*1.8:key==='flow'?84+v*1.2:key==='pressure'?.69+v*.012:v);
   const mn=Math.min(...arr)-.15,mx=Math.max(...arr)+.15;
-  ctx.beginPath();arr.forEach((v,i)=>{const x=i*(w-8)/(arr.length-1)+4,y=h-5-(v-mn)/(mx-mn)*(h-10);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle='#42e6d0';ctx.lineWidth=2;ctx.stroke();
+  ctx.beginPath();arr.forEach((v,i)=>{const x=i*(w-8)/(arr.length-1)+4,y=h-5-(v-mn)/(mx-mn)*(h-10);i?ctx.lineTo(x,y):ctx.moveTo(x,y)});ctx.strokeStyle='#17b0a1';ctx.lineWidth=2;ctx.stroke();
 }
 function pushChart(){history.push(2.15+Math.sin(Date.now()/1800)*.13+Math.random()*.08);history.shift();drawChart()}
 window.drawChart=drawChart;setInterval(pushChart,1000);addEventListener('resize',()=>{drawChart();renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()});drawChart();
@@ -316,8 +427,4 @@ window.drawChart=drawChart;setInterval(pushChart,1000);addEventListener('resize'
 function animate(){requestAnimationFrame(animate);controls.update();renderer.render(scene,camera)}animate();
 </script>
 </body>
-</html>'''
-
-out.write_text(html, encoding="utf-8")
-print(out)
-print(f"已生成：{out.stat().st_size/1024:.1f} KB")
+</html>
